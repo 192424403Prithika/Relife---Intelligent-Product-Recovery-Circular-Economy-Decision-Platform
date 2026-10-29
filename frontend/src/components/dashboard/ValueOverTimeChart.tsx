@@ -26,13 +26,12 @@ export function ValueOverTimeChart({ data, isLoading }: ValueOverTimeChartProps)
 
   if (isLoading) {
     return (
-      <Card title="Monthly Recovery Velocity" subtitle="Value recovered per cycle">
+      <Card title="Recovery Velocity" subtitle="Daily value recovered">
         <ChartSkeleton height="h-64" />
       </Card>
     );
   }
 
-  // Group or sample points for a clean 12-bar display like Finora
   const sampleData = data.slice(-12).map((d, index) => {
     try {
       const parts = d.date.split('-');
@@ -53,20 +52,20 @@ export function ValueOverTimeChart({ data, isLoading }: ValueOverTimeChartProps)
     if (active && payload && payload.length) {
       const pt = payload[0].payload;
       return (
-        <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-xl">
-          <div className="text-xs font-bold text-slate-900 mb-1">{pt.monthName}</div>
-          <div className="text-xs text-slate-600 space-y-0.5">
+        <div className="bg-[#08080D] border border-[#252836] rounded-xl p-3 shadow-2xl text-xs font-mono">
+          <div className="text-xs font-bold text-white mb-1">{pt.monthName}</div>
+          <div className="text-xs text-slate-300 space-y-0.5">
             <div className="flex justify-between gap-4">
               <span>Recovered Value:</span>
-              <span className="font-bold text-[#073E2E]">{formatINR(pt.daily_value_inr, false)}</span>
+              <span className="font-bold text-[#FFC21A]">{formatINR(pt.daily_value_inr, false)}</span>
             </div>
             <div className="flex justify-between gap-4">
               <span>Cumulative:</span>
-              <span className="font-bold text-slate-800">{formatINR(pt.cumulative_value_inr, true)}</span>
+              <span className="font-bold text-white">{formatINR(pt.cumulative_value_inr, true)}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span>Returns Processed:</span>
-              <span className="font-bold text-slate-800">{pt.returns_count} units</span>
+              <span>Returns Count:</span>
+              <span className="font-bold text-white">{pt.returns_count} units</span>
             </div>
           </div>
         </div>
@@ -75,20 +74,22 @@ export function ValueOverTimeChart({ data, isLoading }: ValueOverTimeChartProps)
     return null;
   };
 
-  const actionDropdown = (
-    <div className="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg">
-      October 2026 ▾
-    </div>
-  );
-
   return (
-    <Card title="Monthly Recovery" action={actionDropdown} className="h-full flex flex-col justify-between">
-      {/* Active Callout Pill matching Finora's "$1,240.60 Apr" */}
+    <Card
+      title="Value Recovery Timeline"
+      action={
+        <div className="text-xs font-mono font-semibold text-slate-400 bg-[#08080D] border border-[#252836] px-2.5 py-1 rounded-lg">
+          30-Day Trend
+        </div>
+      }
+      className="h-full flex flex-col justify-between"
+    >
+      {/* Active Callout Pill */}
       <div className="flex items-center justify-center my-1">
         {activeItem && (
-          <div className="inline-flex flex-col items-center px-4 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200/70 text-center shadow-sm">
-            <span className="text-[10px] text-emerald-800 font-semibold">{activeItem.monthName}</span>
-            <span className="text-sm font-bold text-[#073E2E] font-sans">
+          <div className="inline-flex flex-col items-center px-4 py-1.5 rounded-xl bg-[#08080D] border border-[#FFC21A]/40 text-center shadow-md">
+            <span className="text-[10px] text-slate-400 font-mono font-semibold">{activeItem.monthName}</span>
+            <span className="text-sm font-bold font-mono text-[#FFC21A]">
               {formatINR(activeItem.daily_value_inr, false)}
             </span>
           </div>
@@ -98,16 +99,16 @@ export function ValueOverTimeChart({ data, isLoading }: ValueOverTimeChartProps)
       <div className="h-52 w-full pt-1">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={sampleData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#1E202E" vertical={false} />
             <XAxis
               dataKey="monthName"
-              stroke="#94A3B8"
+              stroke="#64748B"
               fontSize={10}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              stroke="#94A3B8"
+              stroke="#64748B"
               fontSize={10}
               tickLine={false}
               axisLine={false}
@@ -119,7 +120,7 @@ export function ValueOverTimeChart({ data, isLoading }: ValueOverTimeChartProps)
               {sampleData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={index === selectedIdx ? '#073E2E' : '#A7F3D0'}
+                  fill={index === selectedIdx ? '#FFC21A' : '#1E202E'}
                   className="hover:opacity-80 cursor-pointer transition-colors"
                   onClick={() => setSelectedIdx(index)}
                 />

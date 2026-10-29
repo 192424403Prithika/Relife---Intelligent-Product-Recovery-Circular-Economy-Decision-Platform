@@ -235,7 +235,7 @@ export function RecentReturnsTable({
       {/* Search & Filter Toolbar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
         <div className="relative w-full sm:w-80">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
@@ -243,15 +243,15 @@ export function RecentReturnsTable({
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            placeholder="Search all products, ID, category, or defects..."
-            className="w-full pl-9 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#073E2E]"
+            placeholder="Search products, ID, category, or defects..."
+            className="w-full pl-9 pr-8 py-1.5 bg-[#08080D] border border-[#252836] rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#FFC21A]"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -263,7 +263,7 @@ export function RecentReturnsTable({
               setCategoryFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 py-1.5 px-2.5 focus:outline-none"
+            className="bg-[#08080D] border border-[#252836] rounded-xl text-xs text-slate-300 py-1.5 px-2.5 focus:outline-none focus:border-[#FFC21A]"
           >
             <option value="all">All Product Categories</option>
             {availableCategories.map((cat) => (
@@ -279,7 +279,7 @@ export function RecentReturnsTable({
               setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 py-1.5 px-2.5 focus:outline-none"
+            className="bg-[#08080D] border border-[#252836] rounded-xl text-xs text-slate-300 py-1.5 px-2.5 focus:outline-none focus:border-[#FFC21A]"
           >
             <option value="all">All Statuses</option>
             <option value="Recovered">Recovered</option>
@@ -292,14 +292,14 @@ export function RecentReturnsTable({
       {isLoading ? (
         <TableSkeleton />
       ) : filteredData.length === 0 ? (
-        <div className="py-12 text-center text-slate-400 text-xs">
+        <div className="py-12 text-center text-slate-500 text-xs">
           No return items matching active filters.
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-100 text-[10px]">
+              <tr className="text-slate-400 uppercase tracking-wider font-semibold border-b border-[#1E202E] text-[10px] font-mono">
                 <th className="py-2.5 px-3">Date / ID</th>
                 <th className="py-2.5 px-3">Product Model</th>
                 <th className="py-2.5 px-3">Defect Summary</th>
@@ -308,25 +308,25 @@ export function RecentReturnsTable({
                 <th className="py-2.5 px-3 text-right">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-[#1E202E]">
               {paginatedData.map((item) => {
                 const CategoryIcon = getCategoryIcon(item.category);
                 return (
                   <tr
                     key={item.id}
                     onClick={() => onSelectReturn && onSelectReturn(item)}
-                    className="hover:bg-slate-50/90 transition-colors cursor-pointer group"
+                    className="hover:bg-[#181926] transition-colors cursor-pointer group"
                     title="Click to view full return diagnostic report"
                   >
                     {/* Date & ID */}
                     <td className="py-3 px-3">
-                      <span className="font-mono font-bold text-slate-900 block text-xs group-hover:text-[#073E2E] transition-colors">
+                      <span className="font-mono font-bold text-white block text-xs group-hover:text-[#FFC21A] transition-colors">
                         {item.id}
                       </span>
-                      <span className="text-[10px] text-slate-400">{item.received_date}</span>
+                      <span className="text-[10px] text-slate-500 font-mono">{item.received_date}</span>
                     </td>
 
-                    {/* Brand & Model with Finora style circular avatar */}
+                    {/* Brand & Model */}
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-2.5">
                         <div
@@ -337,11 +337,11 @@ export function RecentReturnsTable({
                           {getBrandInitial(item.brand_model)}
                         </div>
                         <div>
-                          <span className="font-bold text-slate-800 block text-xs group-hover:text-[#073E2E] transition-colors">
+                          <span className="font-bold text-white block text-xs group-hover:text-[#FFC21A] transition-colors">
                             {item.brand_model}
                           </span>
                           <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
-                            <CategoryIcon className="w-3 h-3 text-slate-400 shrink-0" />
+                            <CategoryIcon className="w-3 h-3 text-slate-500 shrink-0" />
                             <span>
                               {item.category} • SKU: {item.product_id}
                             </span>
@@ -363,13 +363,13 @@ export function RecentReturnsTable({
                     {/* Confidence */}
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-12 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div className="w-12 bg-[#1E202E] h-1.5 rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full bg-[#073E2E]"
+                            className="h-full rounded-full bg-[#FFC21A]"
                             style={{ width: `${item.confidence}%` }}
                           />
                         </div>
-                        <span className="font-mono text-[11px] font-semibold text-slate-700">
+                        <span className="font-mono text-[11px] font-semibold text-slate-300">
                           {item.confidence.toFixed(0)}%
                         </span>
                       </div>
@@ -389,7 +389,7 @@ export function RecentReturnsTable({
 
       {/* Pagination Controls */}
       {!isLoading && filteredData.length > 0 && (
-        <div className="flex items-center justify-between pt-3 mt-1 border-t border-slate-100 text-xs text-slate-400">
+        <div className="flex items-center justify-between pt-3 mt-1 border-t border-[#1E202E] text-xs text-slate-400">
           <div>
             Showing {(currentPage - 1) * itemsPerPage + 1} -{' '}
             {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} items
@@ -398,17 +398,17 @@ export function RecentReturnsTable({
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-1 rounded-lg hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 rounded-lg hover:bg-[#1E202E] text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="font-semibold text-slate-700 px-2">
+            <span className="font-semibold text-slate-200 px-2">
               {currentPage} / {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-1 rounded-lg hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 rounded-lg hover:bg-[#1E202E] text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

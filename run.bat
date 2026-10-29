@@ -1,6 +1,6 @@
 @echo off
 echo ===================================================
-echo Starting ReLife AI Platform (Phase 1: Dashboard)
+echo Starting ReLife AI Platform (Intelligent Product Recovery)
 echo ===================================================
 
 echo [1/3] Checking Python virtual environment and database...

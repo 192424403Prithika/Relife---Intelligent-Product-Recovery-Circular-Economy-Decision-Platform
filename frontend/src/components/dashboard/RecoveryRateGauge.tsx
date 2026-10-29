@@ -13,11 +13,10 @@ export function RecoveryRateGauge({ rate = 71.2 }: RecoveryRateGaugeProps) {
 
   return (
     <Card
-      title="Circular Recovery Progress"
+      title="Circular Recovery Rate"
       action={
-        <button className="text-xs text-slate-400 hover:text-slate-700 font-medium flex items-center gap-0.5">
-          <span>View All</span>
-          <ChevronRight className="w-3.5 h-3.5" />
+        <button className="text-xs text-slate-400 hover:text-white font-medium flex items-center gap-0.5">
+          <span>Target: 75%</span>
         </button>
       }
     >
@@ -29,7 +28,7 @@ export function RecoveryRateGauge({ rate = 71.2 }: RecoveryRateGaugeProps) {
               cx="50"
               cy="50"
               r="40"
-              className="text-slate-100"
+              className="text-[#1E202E]"
               strokeWidth="9"
               stroke="currentColor"
               fill="transparent"
@@ -38,7 +37,7 @@ export function RecoveryRateGauge({ rate = 71.2 }: RecoveryRateGaugeProps) {
               cx="50"
               cy="50"
               r="40"
-              className="text-[#073E2E]"
+              className="text-[#FFC21A]"
               strokeWidth="9"
               strokeDasharray="251.2"
               strokeDashoffset={strokeDashoffset}
@@ -48,11 +47,11 @@ export function RecoveryRateGauge({ rate = 71.2 }: RecoveryRateGaugeProps) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-extrabold text-slate-900 font-sans tracking-tight">
+            <span className="text-2xl font-extrabold text-white font-mono tracking-tight">
               {rate}%
             </span>
-            <span className="text-[9px] text-slate-400 font-medium uppercase tracking-wider">
-              Overall Yield
+            <span className="text-[9px] text-slate-400 font-mono uppercase tracking-wider">
+              Yield Rate
             </span>
           </div>
         </div>
@@ -61,51 +60,50 @@ export function RecoveryRateGauge({ rate = 71.2 }: RecoveryRateGaugeProps) {
         <div className="flex-1 w-full space-y-2 text-xs">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#073E2E]" />
-              <span className="text-slate-600 font-medium">Smart Devices & Mobile</span>
+              <span className="w-2 h-2 rounded-full bg-[#FFC21A]" />
+              <span className="text-slate-300 font-medium">Laptops & Ultrabooks</span>
             </div>
-            <span className="font-bold text-slate-800">74%</span>
+            <span className="font-bold text-white font-mono">74%</span>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-sky-500" />
-              <span className="text-slate-600 font-medium">Computing & Consoles</span>
+              <span className="w-2 h-2 rounded-full bg-[#22D3EE]" />
+              <span className="text-slate-300 font-medium">Smartphones & Tablets</span>
             </div>
-            <span className="font-bold text-slate-800">71%</span>
+            <span className="font-bold text-white font-mono">71%</span>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              <span className="text-slate-600 font-medium">Audio & Wearables</span>
+              <span className="w-2 h-2 rounded-full bg-[#F57C00]" />
+              <span className="text-slate-300 font-medium">Components & Parts</span>
             </div>
-            <span className="font-bold text-slate-800">68%</span>
+            <span className="font-bold text-white font-mono">68%</span>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              <span className="text-slate-600 font-medium">Home & Smart Appliances</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="text-slate-300 font-medium">Certified Smelted</span>
             </div>
-            <span className="font-bold text-slate-800">64%</span>
+            <span className="font-bold text-white font-mono">64%</span>
           </div>
         </div>
       </div>
 
-      {/* Motivational Bottom Callout matching Finora's "You're on track!" */}
-      <div className="mt-4 p-3 rounded-2xl bg-emerald-50/80 border border-emerald-200/50 flex items-start gap-2.5">
-        <div className="p-1 rounded-lg bg-emerald-200/70 text-[#073E2E] shrink-0 mt-0.5">
+      {/* Bottom Callout */}
+      <div className="mt-4 p-3 rounded-2xl bg-[#08080D] border border-emerald-500/30 flex items-start gap-2.5">
+        <div className="p-1 rounded-lg bg-emerald-950/80 text-emerald-400 shrink-0 mt-0.5">
           <Award className="w-3.5 h-3.5" />
         </div>
         <div>
-          <h5 className="text-xs font-bold text-[#073E2E]">You&apos;re on track!</h5>
-          <p className="text-[11px] text-emerald-800 font-medium leading-tight mt-0.5">
-            You&apos;ve salvaged {rate}% of all returned products across categories without landfill disposal. Keep it up!
+          <h5 className="text-xs font-bold text-emerald-300">Circular Milestone Achieved</h5>
+          <p className="text-[11px] text-slate-300 font-medium leading-tight mt-0.5">
+            You&apos;ve diverted {rate}% of all returned products across categories without landfill disposal.
           </p>
         </div>
       </div>
     </Card>
   );
 }
-

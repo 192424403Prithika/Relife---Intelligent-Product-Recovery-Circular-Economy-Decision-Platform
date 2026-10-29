@@ -10,7 +10,6 @@ import {
   ShieldAlert,
   Cpu,
   PackageX,
-  ChevronRight,
 } from 'lucide-react';
 
 interface CommonDefectsChartProps {
@@ -24,11 +23,11 @@ const DEFECT_CONFIG: Record<
   string,
   { color: string; bg: string; icon: React.ElementType }
 > = {
-  'Battery fault': { color: 'text-amber-700', bg: 'bg-amber-100', icon: BatteryWarning },
-  Crack: { color: 'text-rose-700', bg: 'bg-rose-100', icon: ShieldAlert },
-  Scratch: { color: 'text-emerald-700', bg: 'bg-emerald-100', icon: Sparkles },
-  Dent: { color: 'text-sky-700', bg: 'bg-sky-100', icon: Cpu },
-  'Missing part': { color: 'text-purple-700', bg: 'bg-purple-100', icon: PackageX },
+  'Battery fault': { color: 'text-[#F57C00]', bg: 'bg-[#F57C00]/20 border border-[#F57C00]/30', icon: BatteryWarning },
+  Crack: { color: 'text-red-400', bg: 'bg-red-950/60 border border-red-500/30', icon: ShieldAlert },
+  Scratch: { color: 'text-[#FFC21A]', bg: 'bg-[#FFC21A]/20 border border-[#FFC21A]/30', icon: Sparkles },
+  Dent: { color: 'text-cyan-400', bg: 'bg-cyan-950/60 border border-cyan-500/30', icon: Cpu },
+  'Missing part': { color: 'text-purple-400', bg: 'bg-purple-950/60 border border-purple-500/30', icon: PackageX },
 };
 
 export function CommonDefectsChart({
@@ -47,10 +46,10 @@ export function CommonDefectsChart({
 
   return (
     <Card
-      title="Top Failure Modes"
+      title="Common Defect Categories"
       action={
-        <span className="text-xs text-slate-400 font-medium">
-          Filter by Defect
+        <span className="text-xs font-mono text-slate-400">
+          OpenCV Classified
         </span>
       }
       className="h-full flex flex-col justify-between"
@@ -58,8 +57,8 @@ export function CommonDefectsChart({
       <div className="space-y-3.5 py-1">
         {data.map((item) => {
           const cfg = DEFECT_CONFIG[item.category] || {
-            color: 'text-slate-700',
-            bg: 'bg-slate-100',
+            color: 'text-slate-300',
+            bg: 'bg-[#1E202E]',
             icon: Sparkles,
           };
           const Icon = cfg.icon;
@@ -72,8 +71,8 @@ export function CommonDefectsChart({
               onClick={() => onSelectDefect && onSelectDefect(item.category)}
               className={`p-2 rounded-xl cursor-pointer transition-colors ${
                 isSelected
-                  ? 'bg-amber-50/80 border border-amber-200'
-                  : 'hover:bg-slate-50'
+                  ? 'bg-[#1E202E] border border-[#FFC21A]/50 text-white'
+                  : 'hover:bg-[#181926] text-slate-300'
               }`}
             >
               <div className="flex items-center justify-between text-xs mb-1.5">
@@ -84,8 +83,8 @@ export function CommonDefectsChart({
                   <span
                     className={`font-sans ${
                       isSelected
-                        ? 'font-bold text-amber-900'
-                        : 'font-semibold text-slate-800'
+                        ? 'font-bold text-[#FFC21A]'
+                        : 'font-semibold text-white'
                     }`}
                   >
                     {item.category}
@@ -93,16 +92,16 @@ export function CommonDefectsChart({
                 </div>
                 <div className="flex items-center gap-3 font-mono">
                   <span className="text-slate-400 text-[11px]">{item.percentage}%</span>
-                  <span className="text-slate-800 font-bold text-[11px] min-w-[36px] text-right">
-                    {item.count}u
+                  <span className="text-white font-bold text-[11px] min-w-[36px] text-right">
+                    {item.count} units
                   </span>
                 </div>
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-[#1E202E] h-1.5 rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-[#073E2E] transition-all duration-500"
+                  className="h-full rounded-full bg-[#FFC21A] transition-all duration-500"
                   style={{ width: `${Math.min(100, item.percentage * 2)}%` }}
                 />
               </div>

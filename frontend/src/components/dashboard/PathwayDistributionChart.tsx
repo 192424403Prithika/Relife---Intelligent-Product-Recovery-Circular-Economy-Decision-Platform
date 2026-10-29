@@ -15,13 +15,13 @@ interface PathwayDistributionChartProps {
   onSelectPathway?: (pathway: string) => void;
 }
 
-const FINORA_COLORS = [
-  '#073E2E', // Deep forest green
-  '#0EA5E9', // Sky Blue
-  '#F59E0B', // Amber
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-];
+const DARK_PATHWAY_COLORS: Record<string, string> = {
+  Resale: '#FFC21A',
+  Repair: '#22D3EE',
+  Refurbish: '#F57C00',
+  Harvest: '#A855F7',
+  Recycle: '#10B981',
+};
 
 export function PathwayDistributionChart({
   data,
@@ -38,9 +38,9 @@ export function PathwayDistributionChart({
     );
   }
 
-  const enrichedData = data.map((item, idx) => ({
+  const enrichedData = data.map((item) => ({
     ...item,
-    color: FINORA_COLORS[idx % FINORA_COLORS.length],
+    color: DARK_PATHWAY_COLORS[item.name] || '#FFC21A',
     estimatedValue: Math.round((totalValue * item.percentage) / 100),
   }));
 
@@ -48,29 +48,26 @@ export function PathwayDistributionChart({
     if (active && payload && payload.length) {
       const item = payload[0].payload;
       return (
-        <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-xl">
-          <div className="flex items-center gap-2 mb-1.5 pb-1 border-b border-slate-100">
+        <div className="bg-[#08080D] border border-[#252836] rounded-xl p-3 shadow-2xl text-xs">
+          <div className="flex items-center gap-2 mb-1.5 pb-1 border-b border-[#1E202E]">
             <span
               className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: item.color }}
             />
-            <span className="font-bold text-slate-800 text-xs font-sans">{item.name} Pathway</span>
+            <span className="font-bold text-white text-xs">{item.name} Pathway</span>
           </div>
-          <div className="text-xs text-slate-600 space-y-0.5">
+          <div className="text-xs text-slate-300 space-y-0.5 font-mono">
             <div className="flex justify-between gap-4">
               <span>Volume:</span>
-              <span className="font-bold text-slate-900">{item.count} units</span>
+              <span className="font-bold text-white">{item.count} units</span>
             </div>
             <div className="flex justify-between gap-4">
               <span>Share:</span>
-              <span className="font-bold text-emerald-700">{item.percentage}%</span>
+              <span className="font-bold text-[#FFC21A]">{item.percentage}%</span>
             </div>
             <div className="flex justify-between gap-4">
               <span>Recovered:</span>
-              <span className="font-bold text-slate-900">{formatINR(item.estimatedValue, true)}</span>
-            </div>
-            <div className="pt-1 text-[10px] text-slate-400 italic">
-              Click to filter returns table
+              <span className="font-bold text-white">{formatINR(item.estimatedValue, true)}</span>
             </div>
           </div>
         </div>
@@ -79,16 +76,14 @@ export function PathwayDistributionChart({
     return null;
   };
 
-  const actionDropdown = (
-    <div className="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg">
-      This Month ▾
-    </div>
-  );
-
   return (
     <Card
-      title="Recovery Overview"
-      action={actionDropdown}
+      title="Pathway Allocation"
+      action={
+        <div className="text-xs font-mono font-semibold text-[#FFC21A] bg-[#08080D] border border-[#252836] px-2.5 py-1 rounded-lg">
+          5 Pathways
+        </div>
+      }
       className="h-full flex flex-col justify-between"
     >
       <div className="grid grid-cols-1 sm:grid-cols-12 items-center gap-4 py-2">
@@ -104,7 +99,7 @@ export function PathwayDistributionChart({
                 outerRadius={78}
                 paddingAngle={4}
                 dataKey="count"
-                stroke="#FFFFFF"
+                stroke="#12131A"
                 strokeWidth={3}
                 onClick={(entry) => onSelectPathway && onSelectPathway(entry.name)}
               >
@@ -113,7 +108,7 @@ export function PathwayDistributionChart({
                     key={`cell-${index}`}
                     fill={entry.color}
                     className="hover:opacity-80 transition-opacity cursor-pointer outline-none"
-                    stroke={selectedPathway === entry.name ? '#073E2E' : '#FFFFFF'}
+                    stroke={selectedPathway === entry.name ? '#FFFFFF' : '#12131A'}
                     strokeWidth={selectedPathway === entry.name ? 3 : 2}
                   />
                 ))}
@@ -124,14 +119,14 @@ export function PathwayDistributionChart({
 
           {/* Center Callout */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-base sm:text-lg font-extrabold font-sans text-slate-900 tracking-tight">
+            <span className="text-base sm:text-lg font-extrabold font-mono text-white tracking-tight">
               {formatINR(totalValue, true)}
             </span>
             <span className="text-[10px] text-slate-400 font-medium">Total Recovered</span>
           </div>
         </div>
 
-        {/* Right: Detailed Finora-Style Legend List */}
+        {/* Right: Detailed Legend List */}
         <div className="sm:col-span-6 flex flex-col justify-center space-y-1.5 text-xs">
           {enrichedData.map((item) => {
             const isSelected = selectedPathway === item.name;
@@ -139,10 +134,10 @@ export function PathwayDistributionChart({
               <div
                 key={item.name}
                 onClick={() => onSelectPathway && onSelectPathway(item.name)}
-                className={`flex items-center justify-between py-1 px-2 rounded-xl cursor-pointer transition-colors ${
+                className={`flex items-center justify-between py-1.5 px-2 rounded-xl cursor-pointer transition-colors ${
                   isSelected
-                    ? 'bg-emerald-50 border border-emerald-200'
-                    : 'hover:bg-slate-50'
+                    ? 'bg-[#1E202E] border border-[#FFC21A]/50 text-white'
+                    : 'hover:bg-[#181926] text-slate-300'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -150,13 +145,13 @@ export function PathwayDistributionChart({
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: item.color }}
                   />
-                  <span className={`font-medium ${isSelected ? 'text-[#073E2E] font-bold' : 'text-slate-600'}`}>
+                  <span className={`font-medium ${isSelected ? 'text-[#FFC21A] font-bold' : 'text-slate-300'}`}>
                     {item.name}
                   </span>
                 </div>
                 <div className="flex items-center gap-2.5 font-mono">
-                  <span className="text-slate-400 text-[11px]">{item.percentage}%</span>
-                  <span className="text-slate-800 font-bold text-[11px] min-w-[50px] text-right">
+                  <span className="text-slate-500 text-[11px]">{item.percentage}%</span>
+                  <span className="text-white font-bold text-[11px] min-w-[50px] text-right">
                     {formatINR(item.estimatedValue, true)}
                   </span>
                 </div>

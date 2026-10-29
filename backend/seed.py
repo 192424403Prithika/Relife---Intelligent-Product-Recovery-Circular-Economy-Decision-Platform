@@ -1,7 +1,25 @@
+import io
+import base64
 import random
 from datetime import datetime, timedelta
+import qrcode
 from app.database import engine, SessionLocal, Base
-from app.models import Product, ReturnItem, Defect, Recommendation, RecoveryOutcome
+from app.models import (
+    Product, ReturnItem, Defect, Recommendation,
+    RecoveryOutcome, Buyer, Inspection, FunctionalTest, Component
+)
+from app.pricing_data import SEED_BUYERS
+
+
+def make_qr_data_url(passport_url: str) -> str:
+    qr = qrcode.QRCode(version=1, box_size=8, border=2)
+    qr.add_data(passport_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#073E2E", back_color="white")
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    return f"data:image/png;base64,{b64}"
 
 PRODUCTS_DATA = [
     # Laptops & Computing
@@ -134,6 +152,21 @@ def seed_database():
             products.append(prod)
         db.commit()
         print(f"Seeded {len(products)} products.")
+
+        # 1b. Seed Circular B2B Buyers
+        for b_data in SEED_BUYERS:
+            b_obj = Buyer(
+                name=b_data["name"],
+                buyer_type=b_data["buyer_type"],
+                target_components=b_data["target_components"],
+                min_condition=b_data["min_condition"],
+                bid_price_factor=b_data["bid_price_factor"],
+                demand_rating=b_data["demand_rating"],
+                location=b_data["location"],
+            )
+            db.add(b_obj)
+        db.commit()
+        print(f"Seeded {len(SEED_BUYERS)} B2B circular buyers.")
 
         # 2. Plan 52 Returns across the last 30 days
         # Distribution: 18 Resale, 13 Repair, 9 Refurbish, 7 Harvest, 5 Recycle
@@ -313,8 +346,271 @@ def seed_database():
                 )
                 db.add(outcome)
 
+        # 3. Canonical Hackathon Demo Cases (Steps 1 to 7 Scenarios)
+        canonical_demos = [
+            {
+                "id": "REL-DEMO-001",
+                "product_id": "PRD-LPT-002",  # MacBook Pro 14
+                "purchase_price": 169900.0,
+                "age_months": 7,
+                "reason": "Display cracked during transit",
+                "customer_issue": "Internal display shattered, chassis otherwise pristine",
+                "status": "In progress",
+                "needs_human_review": False,
+                "image": "laptop_cracked_screen.jpg",
+                "defects": [
+                    ("crack", "high", "Radiating fracture across display panel; digitizer broken", 94.6, 0.15, 0.18, 0.65, 0.55),
+                    ("scratch", "low", "Minor chassis bevel scuff", 88.0, 0.08, 0.78, 0.25, 0.12)
+                ],
+                "tests": {
+                    "powers_on": "pass",
+                    "display_ok": "fail",
+                    "battery_health_pct": 91,
+                    "battery_test": "pass",
+                    "motherboard_ok": "pass",
+                    "ram_ok": "pass",
+                    "storage_ok": "pass",
+                    "ports_ok": "pass"
+                },
+                "recommended_pathway": "Repair",
+                "confidence": 91.2,
+                "winner_rationale": "Repair recommended: Modular display replacement restores full secondary value (NRV: ₹78,250).",
+            },
+            {
+                "id": "REL-DEMO-002",
+                "product_id": "PRD-PHN-001",  # iPhone 14 Pro
+                "purchase_price": 119900.0,
+                "age_months": 14,
+                "reason": "Battery thermal throttling / fast discharge",
+                "customer_issue": "Shuts down unexpectedly at 30% battery",
+                "status": "In progress",
+                "needs_human_review": False,
+                "image": "phone_scratched_back.jpg",
+                "defects": [
+                    ("scratch", "low", "Surface scratches on rear oleophobic coating", 92.5, 0.18, 0.22, 0.44, 0.38)
+                ],
+                "tests": {
+                    "powers_on": "pass",
+                    "display_ok": "pass",
+                    "battery_health_pct": 62,
+                    "battery_test": "fail",
+                    "motherboard_ok": "pass",
+                    "ram_ok": "pass",
+                    "storage_ok": "pass",
+                    "ports_ok": "pass"
+                },
+                "recommended_pathway": "Repair",
+                "confidence": 88.5,
+                "winner_rationale": "Direct Resale blocked by safety override (battery health 62% < 70%). Battery replacement repair recommended.",
+            },
+            {
+                "id": "REL-DEMO-003",
+                "product_id": "PRD-LPT-003",  # Dell XPS 15
+                "purchase_price": 145000.0,
+                "age_months": 48,
+                "reason": "Dead unit; electrical liquid surge",
+                "customer_issue": "Liquid spill on keyboard; smoke observed",
+                "status": "In progress",
+                "needs_human_review": False,
+                "image": "laptop_cracked_screen.jpg",
+                "defects": [
+                    ("crack", "high", "Chassis impact fracture and board deformation", 96.0, 0.10, 0.10, 0.80, 0.80)
+                ],
+                "tests": {
+                    "powers_on": "fail",
+                    "display_ok": "fail",
+                    "battery_health_pct": 20,
+                    "battery_test": "fail",
+                    "motherboard_ok": "fail",
+                    "ram_ok": "fail",
+                    "storage_ok": "unknown",
+                    "ports_ok": "fail"
+                },
+                "recommended_pathway": "Recycling",
+                "confidence": 95.0,
+                "winner_rationale": "Recycling recommended: Unrecoverable motherboard failure and high repair costs preclude economic restoration.",
+            },
+            {
+                "id": "REL-DEMO-004",
+                "product_id": "PRD-LPT-001",  # MacBook Air M2
+                "purchase_price": 114900.0,
+                "age_months": 2,
+                "reason": "Buyer remorse / incorrect color",
+                "customer_issue": "Box opened once, zero usage marks",
+                "status": "Recovered",
+                "needs_human_review": False,
+                "image": "laptop_clean_pristine.jpg",
+                "defects": [],
+                "tests": {
+                    "powers_on": "pass",
+                    "display_ok": "pass",
+                    "battery_health_pct": 100,
+                    "battery_test": "pass",
+                    "motherboard_ok": "pass",
+                    "ram_ok": "pass",
+                    "storage_ok": "pass",
+                    "ports_ok": "pass"
+                },
+                "recommended_pathway": "Direct Resale",
+                "confidence": 97.5,
+                "winner_rationale": "Direct Resale optimal: Pristine condition and 100% battery health yields maximum recovery value (₹86,175) in 1 day.",
+            },
+            {
+                "id": "REL-DEMO-005",
+                "product_id": "PRD-PHN-004",  # Pixel 7 Pro
+                "purchase_price": 72900.0,
+                "age_months": 10,
+                "reason": "Handheld photo upload blurry; diagnostic incomplete",
+                "customer_issue": "Camera lens blur; internal diagnostic unknown",
+                "status": "Needs human review",
+                "needs_human_review": True,
+                "image": "blurry_camera_photo.jpg",
+                "defects": [
+                    ("scratch", "low", "Faint surface marking obscured by motion blur", 54.2, 0.25, 0.30, 0.40, 0.35)
+                ],
+                "tests": {
+                    "powers_on": "pass",
+                    "display_ok": "unknown",
+                    "battery_health_pct": -1,
+                    "battery_test": "unknown",
+                    "motherboard_ok": "unknown",
+                    "ram_ok": "pass",
+                    "storage_ok": "pass",
+                    "ports_ok": "unknown"
+                },
+                "recommended_pathway": "Repair",
+                "confidence": 56.4,
+                "winner_rationale": "Human review required: Low image confidence (54.2%) and unknown electrical tests. Route to technician bench.",
+            }
+        ]
+
+        now = datetime.utcnow()
+        for c in canonical_demos:
+            passport_url = f"/passport/{c['id']}"
+            qr_url = make_qr_data_url(f"http://localhost:3000{passport_url}")
+
+            r_item = ReturnItem(
+                id=c["id"],
+                product_id=c["product_id"],
+                purchase_price=c["purchase_price"],
+                age_months=c["age_months"],
+                return_reason=c["reason"],
+                warranty_status="Active",
+                customer_issue=c["customer_issue"],
+                received_date=now - timedelta(hours=random.randint(2, 48)),
+                status=c["status"],
+                needs_human_review=c["needs_human_review"],
+                review_reason="Optical blur & unknown tests" if c["needs_human_review"] else None,
+                required_test="Execute bench diagnostic for unknown tests" if c["needs_human_review"] else None,
+                qr_code_data=qr_url,
+                qr_code_url=passport_url,
+                created_at=now - timedelta(hours=random.randint(2, 48))
+            )
+            db.add(r_item)
+            db.flush()
+
+            # Inspection
+            insp = Inspection(
+                return_id=c["id"],
+                image_url=f"/api/inspections/image/{c['image']}",
+                image_count=1,
+                is_blurry="blurry" in c["image"],
+                blur_score=45.0 if "blurry" in c["image"] else 185.0,
+                quality_flag="Low Quality (Blurry)" if "blurry" in c["image"] else "Pass",
+                model_version="YOLOv8-ReLife-Simulated-v1.0",
+                inspected_at=now
+            )
+            db.add(insp)
+            db.flush()
+
+            # Defects
+            for d in c["defects"]:
+                db.add(Defect(
+                    inspection_id=insp.id,
+                    return_id=c["id"],
+                    defect_type=d[0],
+                    severity=d[1],
+                    description=d[2],
+                    confidence=d[3],
+                    bbox_x=d[4],
+                    bbox_y=d[5],
+                    bbox_w=d[6],
+                    bbox_h=d[7],
+                    is_simulated=True,
+                    detected_by="opencv_yolo_fallback"
+                ))
+
+            # Functional Tests
+            db.add(FunctionalTest(
+                return_id=c["id"],
+                powers_on=c["tests"]["powers_on"],
+                display_ok=c["tests"]["display_ok"],
+                battery_health_pct=c["tests"]["battery_health_pct"],
+                battery_test=c["tests"]["battery_test"],
+                motherboard_ok=c["tests"]["motherboard_ok"],
+                ram_ok=c["tests"]["ram_ok"],
+                storage_ok=c["tests"]["storage_ok"],
+                ports_ok=c["tests"]["ports_ok"],
+                overall_condition_score=78.0 if not c["needs_human_review"] else 50.0,
+                has_unknown_test=c["needs_human_review"],
+                tested_at=now
+            ))
+
+            # Recommendation
+            db.add(Recommendation(
+                return_id=c["id"],
+                selected_pathway=c["recommended_pathway"],
+                confidence_overall=c["confidence"],
+                confidence_detection=c["confidence"],
+                confidence_condition=c["confidence"],
+                winner_rationale=c["winner_rationale"],
+                fallback_rationale="Alternative pathways evaluated against profitability and carbon diversion constraints.",
+                human_review_required=c["needs_human_review"],
+                required_tests="Optical high-res capture, battery impedance test" if c["needs_human_review"] else "None",
+                generated_at=now
+            ))
+
+        # 4. Seed Harvestable Components for Component Marketplace
+        sample_components = [
+            {"return_id": "REL-DEMO-001", "type": "display", "cond": "Grade A", "val": 22500, "harvested": False},
+            {"return_id": "REL-DEMO-001", "type": "motherboard", "cond": "Grade A", "val": 38000, "harvested": False},
+            {"return_id": "REL-DEMO-001", "type": "RAM", "cond": "Grade A", "val": 8500, "harvested": False},
+            {"return_id": "REL-DEMO-001", "type": "storage", "cond": "Grade A", "val": 6500, "harvested": False},
+            {"return_id": "REL-DEMO-002", "type": "display", "cond": "Grade A", "val": 18500, "harvested": False},
+            {"return_id": "REL-DEMO-002", "type": "camera_module", "cond": "Grade A", "val": 12000, "harvested": False},
+            {"return_id": "REL-DEMO-002", "type": "motherboard", "cond": "Grade A", "val": 28000, "harvested": False},
+            {"return_id": "REL-DEMO-003", "type": "display", "cond": "Grade B", "val": 12500, "harvested": True, "buyer_id": 1},
+            {"return_id": "REL-DEMO-003", "type": "battery", "cond": "Defective", "val": 1200, "harvested": True, "buyer_id": 3},
+            {"return_id": "REL-DEMO-005", "type": "display", "cond": "Grade B", "val": 9800, "harvested": False},
+            {"return_id": "REL-DEMO-005", "type": "camera_module", "cond": "Grade A", "val": 7500, "harvested": False},
+        ]
+        for sc in sample_components:
+            comp_obj = Component(
+                return_id=sc["return_id"],
+                component_type=sc["type"],
+                condition=sc["cond"],
+                estimated_value=sc["val"],
+                is_harvested=sc["harvested"],
+                buyer_match_id=sc.get("buyer_id")
+            )
+            db.add(comp_obj)
+
+        # 5. Seed Outcome for REL-DEMO-004 (Pristine resale completed)
+        db.add(RecoveryOutcome(
+            return_id="REL-DEMO-004",
+            actual_pathway="Direct Resale",
+            actual_revenue=88500.0,
+            actual_cost=1500.0,
+            refurbish_cost_inr=1500.0,
+            actual_value_inr=88500.0,
+            actual_time_days=1,
+            waste_diverted_kg=1.21,
+            notes="Direct resale through enterprise certified outlet completed within 24 hours.",
+            completed_at=now - timedelta(days=1)
+        ))
+
         db.commit()
-        print(f"Successfully seeded {total_returns_count} returns with defects, recommendations, and outcomes.")
+        print(f"Successfully seeded {total_returns_count} returns + {len(canonical_demos)} canonical demo cases + {len(sample_components)} marketplace components.")
 
     except Exception as e:
         db.rollback()

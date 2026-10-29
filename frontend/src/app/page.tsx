@@ -92,7 +92,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-[#F4F7F5] text-slate-800 flex flex-col font-sans">
+    <div className="flex-1 min-h-screen bg-[#08080D] text-slate-100 flex flex-col font-sans">
       {/* Top Navigation Bar with Search, Profile & Date Filter */}
       <Header
         dateRange={dateRange}
@@ -104,8 +104,8 @@ export default function DashboardPage() {
 
       {/* Floating Action Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#073E2E] text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold animate-in slide-in-from-bottom-3 duration-200 border border-emerald-500/30">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="fixed bottom-6 right-6 z-50 bg-[#12131A] text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold animate-in slide-in-from-bottom-3 duration-200 border border-[#FFC21A]/50">
+          <CheckCircle2 className="w-4 h-4 text-[#FFC21A] shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -114,16 +114,16 @@ export default function DashboardPage() {
       <main className="flex-1 p-5 sm:p-6 lg:p-7 max-w-[1800px] w-full mx-auto space-y-6">
         {/* Error notification banner if backend is unreachable */}
         {error && (
-          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-between gap-4 shadow-sm">
+          <div className="p-4 rounded-2xl bg-red-950/40 border border-red-500/40 text-red-300 flex items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
+              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
               <div className="text-xs">
                 <span className="font-bold">Connection Notice:</span> {error}
               </div>
             </div>
             <button
               onClick={() => loadData(dateRange)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-rose-200 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1E202E] border border-red-500/40 text-xs font-semibold text-red-300 hover:bg-[#252836] transition-colors shadow-sm"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Retry

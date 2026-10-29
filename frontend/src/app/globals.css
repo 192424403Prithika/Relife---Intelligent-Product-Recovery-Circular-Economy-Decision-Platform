@@ -1,13 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #F4F7F5;
-  --foreground: #1E293B;
-  --primary: #073E2E;
+  --background: #08080D;
+  --foreground: #F8FAFC;
+  --primary: #FFC21A;
+  --card-bg: #12131A;
+  --border-color: #252836;
 }
 
 body {
@@ -18,52 +20,63 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Crisp Clean Scrollbar */
+/* Dark Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F3;
+  background: #08080D;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #252836;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #073E2E;
+  background: #FFC21A;
 }
 
-/* Accessible focus outline */
+/* Focus outline */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid #073E2E;
+  outline: 2px solid #FFC21A;
   outline-offset: 2px;
 }
 
-/* Recharts styling for clean Finora look */
+/* Recharts Dark Theme Tooltips */
 .recharts-default-tooltip {
-  background-color: #FFFFFF !important;
-  border: 1px solid #E2E8F0 !important;
+  background-color: #08080D !important;
+  border: 1px solid #252836 !important;
   border-radius: 12px !important;
-  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03) !important;
-  color: #1E293B !important;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.5) !important;
+  color: #F8FAFC !important;
   font-family: 'Inter', sans-serif !important;
 }
 
 .recharts-tooltip-label {
-  color: #073E2E !important;
+  color: #FFC21A !important;
   font-weight: 700 !important;
   margin-bottom: 4px !important;
-  font-size: 13px !important;
+  font-size: 12px !important;
 }
 
 .recharts-legend-item-text {
-  color: #64748B !important;
-  font-size: 12px !important;
+  color: #94A3B8 !important;
+  font-size: 11px !important;
+}
+
+/* Clean Print to PDF styles */
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  aside, header, nav, button {
+    display: none !important;
+  }
 }

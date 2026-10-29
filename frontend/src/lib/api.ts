@@ -4,6 +4,20 @@ import {
   ProductItem,
   CreateReturnPayload,
   ResolveReviewPayload,
+  RegisterProductPayload,
+  RegisterProductResponse,
+  ImageInspectionResponse,
+  SampleImageItem,
+  FunctionalTestPayload,
+  FunctionalTestResponse,
+  ObjectiveWeights,
+  EvaluateDecisionResponse,
+  RecommendationReportResponse,
+  BuyerInfo,
+  ComponentCardItem,
+  OutcomeRecordItem,
+  OutcomesSummary,
+  RecordOutcomePayload,
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -14,9 +28,7 @@ export async function fetchDashboardData(range: DateRange = '30d'): Promise<Dash
   try {
     const res = await fetch(url, {
       cache: 'no-store',
-      headers: {
-        Accept: 'application/json',
-      },
+      headers: { Accept: 'application/json' },
     });
 
     if (!res.ok) {
@@ -74,5 +86,181 @@ export async function runAITriage(): Promise<any> {
     headers: { Accept: 'application/json' },
   });
   if (!res.ok) throw new Error(`Failed to execute AI triage: ${res.status}`);
+  return await res.json();
+}
+
+// -------------------------------------------------------------
+// STEP 1 - 7 WIZARD API CLIENT CALLS
+// -------------------------------------------------------------
+
+export async function registerProduct(payload: RegisterProductPayload): Promise<RegisterProductResponse> {
+  const url = `${API_BASE_URL}/api/returns/register`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Registration failed: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function fetchSampleImages(): Promise<SampleImageItem[]> {
+  const url = `${API_BASE_URL}/api/inspections/sample-images`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to fetch sample images: ${res.status}`);
+  const data = await res.json();
+  return data.samples || [];
+}
+
+export async function uploadInspection(formData: FormData): Promise<ImageInspectionResponse> {
+  const url = `${API_BASE_URL}/api/inspections/upload`;
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Inspection upload failed: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function submitFunctionalTests(
+  returnId: string,
+  payload: FunctionalTestPayload
+): Promise<FunctionalTestResponse> {
+  const url = `${API_BASE_URL}/api/returns/${returnId}/tests`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Functional tests failed: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function getFunctionalTests(returnId: string): Promise<any> {
+  const url = `${API_BASE_URL}/api/returns/${returnId}/tests`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to fetch tests: ${res.status}`);
+  return await res.json();
+}
+
+export async function getPathwayEconomics(returnId: string): Promise<any> {
+  const url = `${API_BASE_URL}/api/returns/${returnId}/economics`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to fetch economics: ${res.status}`);
+  return await res.json();
+}
+
+export async function evaluateDecision(
+  returnId: string,
+  weights?: ObjectiveWeights
+): Promise<EvaluateDecisionResponse> {
+  const url = `${API_BASE_URL}/api/returns/${returnId}/evaluate`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(weights ? { weights } : {}),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Decision evaluation failed: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function getRecommendationReport(returnId: string): Promise<RecommendationReportResponse> {
+  const url = `${API_BASE_URL}/api/returns/${returnId}/report`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to fetch report: ${res.status}`);
+  return await res.json();
+}
+
+export async function resolveHumanReview(
+  returnId: string,
+  payload: ResolveReviewPayload
+): Promise<any> {
+  const url = `${API_BASE_URL}/api/returns/${returnId}/resolve-review`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Failed to resolve human review: ${res.status}`);
+  }
+  return await res.json();
+}
+
+
+// Step 8: Marketplace API Client
+export async function fetchMarketplaceComponents(filters?: {
+  component_type?: string;
+  condition?: string;
+  is_harvested?: boolean;
+}): Promise<ComponentCardItem[]> {
+  const params = new URLSearchParams();
+  if (filters?.component_type) params.append('component_type', filters.component_type);
+  if (filters?.condition) params.append('condition', filters.condition);
+  if (filters?.is_harvested !== undefined) params.append('is_harvested', String(filters.is_harvested));
+
+  const url = `${API_BASE_URL}/api/marketplace/components?${params.toString()}`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to fetch marketplace components: ${res.status}`);
+  return await res.json();
+}
+
+export async function fetchMarketplaceBuyers(): Promise<BuyerInfo[]> {
+  const url = `${API_BASE_URL}/api/marketplace/buyers`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to fetch marketplace buyers: ${res.status}`);
+  return await res.json();
+}
+
+export async function allocateComponent(
+  componentId: number,
+  buyerId: number,
+  notes?: string
+): Promise<any> {
+  const url = `${API_BASE_URL}/api/marketplace/allocate`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ component_id: componentId, buyer_id: buyerId, notes }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Failed to allocate component: ${res.status}`);
+  }
+  return await res.json();
+}
+
+// Step 9: Outcomes API Client
+export async function fetchOutcomes(): Promise<OutcomesSummary> {
+  const url = `${API_BASE_URL}/api/outcomes`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to fetch outcomes: ${res.status}`);
+  return await res.json();
+}
+
+export async function recordActualOutcome(payload: RecordOutcomePayload): Promise<OutcomeRecordItem> {
+  const url = `${API_BASE_URL}/api/outcomes`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Failed to record outcome: ${res.status}`);
+  }
   return await res.json();
 }

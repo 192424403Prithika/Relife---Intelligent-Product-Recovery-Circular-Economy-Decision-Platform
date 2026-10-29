@@ -1,6 +1,6 @@
 # ReLife AI One-Command Launch Script for PowerShell
 Write-Host "===================================================" -ForegroundColor Gold
-Write-Host "Starting ReLife AI Platform (Phase 1: Dashboard)" -ForegroundColor Cyan
+Write-Host "Starting ReLife AI Platform (Intelligent Product Recovery)" -ForegroundColor Cyan
 Write-Host "===================================================" -ForegroundColor Gold
 
 $rootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
