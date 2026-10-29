@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { KPIs } from '../../lib/types';
 import { formatINR } from '../../lib/formatters';
 import {
-  Sparkles,
   ArrowUpRight,
   ScanLine,
   PlusCircle,
@@ -12,25 +11,67 @@ import {
   ArrowRightLeft,
   CheckCircle,
   Eye,
+  EyeOff,
   Layers,
-  Coins,
 } from 'lucide-react';
 
 interface HeroBannerProps {
   kpis: KPIs | null;
   isLoading: boolean;
+  onOpenIntake: () => void;
+  onRunTriage: () => void;
+  onOpenReviewQueue: () => void;
+  onOpenTransfer: () => void;
 }
 
-export function HeroBanner({ kpis, isLoading }: HeroBannerProps) {
+export function HeroBanner({
+  kpis,
+  isLoading,
+  onOpenIntake,
+  onRunTriage,
+  onOpenReviewQueue,
+  onOpenTransfer,
+}: HeroBannerProps) {
+  const [showBalance, setShowBalance] = useState<boolean>(true);
   const valueRecovered = kpis?.value_recovered_inr || 1809550;
   const growthPct = kpis?.value_recovered_change_pct || 18.2;
 
   const quickActions = [
-    { label: 'Scan Product', icon: ScanLine, bg: 'bg-emerald-100', text: 'text-emerald-800' },
-    { label: 'Add Return', icon: PlusCircle, bg: 'bg-amber-100', text: 'text-amber-800' },
-    { label: 'Run Triage', icon: Cpu, bg: 'bg-purple-100', text: 'text-purple-800' },
-    { label: 'Transfer', icon: ArrowRightLeft, bg: 'bg-sky-100', text: 'text-sky-800' },
-    { label: 'Review Queue', icon: Layers, bg: 'bg-rose-100', text: 'text-rose-800' },
+    {
+      label: 'Scan Product',
+      icon: ScanLine,
+      bg: 'bg-emerald-100',
+      text: 'text-emerald-800',
+      action: onOpenIntake,
+    },
+    {
+      label: 'Add Return',
+      icon: PlusCircle,
+      bg: 'bg-amber-100',
+      text: 'text-amber-800',
+      action: onOpenIntake,
+    },
+    {
+      label: 'Run Triage',
+      icon: Cpu,
+      bg: 'bg-purple-100',
+      text: 'text-purple-800',
+      action: onRunTriage,
+    },
+    {
+      label: 'Transfer',
+      icon: ArrowRightLeft,
+      bg: 'bg-sky-100',
+      text: 'text-sky-800',
+      action: onOpenTransfer,
+    },
+    {
+      label: 'Review Queue',
+      icon: Layers,
+      bg: 'bg-rose-100',
+      text: 'text-rose-800',
+      action: onOpenReviewQueue,
+    },
   ];
 
   return (
@@ -60,12 +101,27 @@ export function HeroBanner({ kpis, isLoading }: HeroBannerProps) {
             <div className="pt-2">
               <div className="flex items-center gap-2 text-xs text-emerald-200/90 font-medium">
                 <span>Total Value Recovered</span>
-                <Eye className="w-3.5 h-3.5 opacity-70 cursor-pointer hover:opacity-100" />
+                <button
+                  type="button"
+                  onClick={() => setShowBalance(!showBalance)}
+                  className="opacity-70 hover:opacity-100 transition-opacity"
+                  title={showBalance ? 'Hide Value' : 'Show Value'}
+                >
+                  {showBalance ? (
+                    <Eye className="w-3.5 h-3.5" />
+                  ) : (
+                    <EyeOff className="w-3.5 h-3.5" />
+                  )}
+                </button>
               </div>
 
               <div className="flex items-baseline gap-3 mt-1">
                 <span className="text-3xl sm:text-4xl font-extrabold tracking-tight font-sans text-white">
-                  {isLoading ? '...' : formatINR(valueRecovered, false)}
+                  {isLoading
+                    ? '...'
+                    : showBalance
+                    ? formatINR(valueRecovered, false)
+                    : '₹ ••••••••'}
                 </span>
               </div>
 
@@ -115,7 +171,7 @@ export function HeroBanner({ kpis, isLoading }: HeroBannerProps) {
         </div>
       </div>
 
-      {/* Quick Action Buttons Row (Exact match to Finora) */}
+      {/* Quick Action Buttons Row (Interactive) */}
       <div className="grid grid-cols-5 gap-2 sm:gap-4 bg-white rounded-2xl p-3 sm:p-4 border border-slate-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
         {quickActions.map((action, i) => {
           const Icon = action.icon;
@@ -123,6 +179,7 @@ export function HeroBanner({ kpis, isLoading }: HeroBannerProps) {
             <button
               key={i}
               type="button"
+              onClick={action.action}
               className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-slate-50 transition-all group"
             >
               <div
@@ -140,4 +197,3 @@ export function HeroBanner({ kpis, isLoading }: HeroBannerProps) {
     </div>
   );
 }
-

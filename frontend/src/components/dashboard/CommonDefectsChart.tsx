@@ -16,6 +16,8 @@ import {
 interface CommonDefectsChartProps {
   data: DefectCategoryItem[];
   isLoading: boolean;
+  selectedDefect?: string | null;
+  onSelectDefect?: (defect: string) => void;
 }
 
 const DEFECT_CONFIG: Record<
@@ -29,7 +31,12 @@ const DEFECT_CONFIG: Record<
   'Missing part': { color: 'text-purple-700', bg: 'bg-purple-100', icon: PackageX },
 };
 
-export function CommonDefectsChart({ data, isLoading }: CommonDefectsChartProps) {
+export function CommonDefectsChart({
+  data,
+  isLoading,
+  selectedDefect,
+  onSelectDefect,
+}: CommonDefectsChartProps) {
   if (isLoading) {
     return (
       <Card title="Top Defect Categories" subtitle="Hardware failure taxonomy">
@@ -42,10 +49,9 @@ export function CommonDefectsChart({ data, isLoading }: CommonDefectsChartProps)
     <Card
       title="Top Failure Modes"
       action={
-        <button className="text-xs text-slate-400 hover:text-slate-700 font-medium flex items-center gap-0.5">
-          <span>View All</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
+        <span className="text-xs text-slate-400 font-medium">
+          Filter by Defect
+        </span>
       }
       className="h-full flex flex-col justify-between"
     >
@@ -57,15 +63,31 @@ export function CommonDefectsChart({ data, isLoading }: CommonDefectsChartProps)
             icon: Sparkles,
           };
           const Icon = cfg.icon;
+          const isSelected =
+            selectedDefect?.toLowerCase() === item.category.toLowerCase();
 
           return (
-            <div key={item.category} className="group">
+            <div
+              key={item.category}
+              onClick={() => onSelectDefect && onSelectDefect(item.category)}
+              className={`p-2 rounded-xl cursor-pointer transition-colors ${
+                isSelected
+                  ? 'bg-amber-50/80 border border-amber-200'
+                  : 'hover:bg-slate-50'
+              }`}
+            >
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <div className="flex items-center gap-2.5">
                   <div className={`p-1.5 rounded-lg ${cfg.bg} ${cfg.color} shrink-0`}>
                     <Icon className="w-3.5 h-3.5" />
                   </div>
-                  <span className="font-semibold text-slate-800 font-sans">
+                  <span
+                    className={`font-sans ${
+                      isSelected
+                        ? 'font-bold text-amber-900'
+                        : 'font-semibold text-slate-800'
+                    }`}
+                  >
                     {item.category}
                   </span>
                 </div>

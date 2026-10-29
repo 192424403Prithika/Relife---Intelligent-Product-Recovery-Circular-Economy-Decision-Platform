@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { DateRange, DashboardResponse } from '../lib/types';
-import { fetchDashboardData } from '../lib/api';
+import { DateRange, DashboardResponse, RecentReturnItem, HumanReviewItem } from '../lib/types';
+import { fetchDashboardData, runAITriage } from '../lib/api';
 import { Header } from '../components/layout/Header';
 import { HeroBanner } from '../components/dashboard/HeroBanner';
 import { PathwayDistributionChart } from '../components/dashboard/PathwayDistributionChart';
@@ -14,13 +14,35 @@ import { PredictedVsActualChart } from '../components/dashboard/PredictedVsActua
 import { RecentReturnsTable } from '../components/dashboard/RecentReturnsTable';
 import { HumanReviewQueue } from '../components/dashboard/HumanReviewQueue';
 import { EcoQuoteCard } from '../components/dashboard/EcoQuoteCard';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { IntakeModal } from '../components/modals/IntakeModal';
+import { ReturnDetailModal } from '../components/modals/ReturnDetailModal';
+import { ResolveReviewModal } from '../components/modals/ResolveReviewModal';
+import { WorkableTabViews } from '../components/views/WorkableTabViews';
+import { useNavigation } from '../context/NavigationContext';
+import { AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>('30d');
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Global search & filter state
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedReturn, setSelectedReturn] = useState<RecentReturnItem | null>(null);
+  const [selectedReviewItem, setSelectedReviewItem] = useState<HumanReviewItem | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const {
+    activeTab,
+    setActiveTab,
+    selectedPathwayFilter,
+    setSelectedPathwayFilter,
+    selectedDefectFilter,
+    setSelectedDefectFilter,
+    isAddModalOpen,
+    setIsAddModalOpen,
+  } = useNavigation();
 
   const loadData = useCallback(async (range: DateRange) => {
     setIsLoading(true);
@@ -42,16 +64,53 @@ export default function DashboardPage() {
     loadData(dateRange);
   }, [dateRange, loadData]);
 
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
+  };
+
+  const handleRunTriage = async () => {
+    try {
+      showToast('Running automated AI diagnostic triage across pending inventory...');
+      const res = await runAITriage();
+      showToast(res.message || 'AI Triage completed successfully!');
+      loadData(dateRange);
+    } catch (err: any) {
+      showToast(`Triage failed: ${err.message}`);
+    }
+  };
+
+  const handleOpenReviewQueue = () => {
+    const el = document.getElementById('review-queue-card');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      setActiveTab('inspections');
+    }
+  };
+
   return (
     <div className="flex-1 min-h-screen bg-[#F4F7F5] text-slate-800 flex flex-col font-sans">
       {/* Top Navigation Bar with Search, Profile & Date Filter */}
       <Header
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
         isLoading={isLoading}
       />
 
-      {/* Main Grid matching Finora composition perfectly */}
+      {/* Floating Action Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#073E2E] text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold animate-in slide-in-from-bottom-3 duration-200 border border-emerald-500/30">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Main Content Area */}
       <main className="flex-1 p-5 sm:p-6 lg:p-7 max-w-[1800px] w-full mx-auto space-y-6">
         {/* Error notification banner if backend is unreachable */}
         {error && (
@@ -72,79 +131,137 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 3-Column Finora Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Main Column: Hero Banner + Monthly Recovery Bar Chart + Recent Returns Table */}
-          <div className="lg:col-span-12 xl:col-span-5 space-y-6 flex flex-col">
-            {/* Signature Dark Green Hero Card + Quick Action Buttons */}
-            <HeroBanner kpis={data?.kpis || null} isLoading={isLoading} />
+        {/* Alternate Dedicated Tab View if a sub-tab is clicked */}
+        {activeTab !== 'dashboard' ? (
+          <WorkableTabViews onOpenIntake={() => setIsAddModalOpen(true)} />
+        ) : (
+          /* 3-Column Finora Executive Dashboard Layout */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Hero Banner + Monthly Bar Chart + Recent Returns Table */}
+            <div className="lg:col-span-12 xl:col-span-5 space-y-6 flex flex-col">
+              {/* Interactive Hero Card with Quick Action Buttons */}
+              <HeroBanner
+                kpis={data?.kpis || null}
+                isLoading={isLoading}
+                onOpenIntake={() => setIsAddModalOpen(true)}
+                onRunTriage={handleRunTriage}
+                onOpenReviewQueue={handleOpenReviewQueue}
+                onOpenTransfer={() => setActiveTab('recommendations')}
+              />
 
-            {/* Monthly Recovery Velocity (Finora Monthly Spending Bar Chart) */}
-            <ValueOverTimeChart
-              data={data?.value_over_time || []}
-              isLoading={isLoading}
-            />
+              {/* Monthly Recovery Velocity */}
+              <ValueOverTimeChart
+                data={data?.value_over_time || []}
+                isLoading={isLoading}
+              />
 
-            {/* Recent Returns Table (Finora Recent Transactions Table) */}
-            <RecentReturnsTable
-              returns={data?.recent_returns || []}
-              isLoading={isLoading}
-            />
+              {/* Recent Returns Table with Row Click, Search & Chart Filters */}
+              <RecentReturnsTable
+                returns={data?.recent_returns || []}
+                isLoading={isLoading}
+                onSelectReturn={(item) => setSelectedReturn(item)}
+                pathwayFilter={selectedPathwayFilter}
+                onClearPathwayFilter={() => setSelectedPathwayFilter(null)}
+                defectFilter={selectedDefectFilter}
+                onClearDefectFilter={() => setSelectedDefectFilter(null)}
+                externalSearchTerm={searchTerm}
+                onOpenIntake={() => setIsAddModalOpen(true)}
+              />
+            </div>
+
+            {/* Middle Analytics Column: Donut + Progress Gauge + Top Defect Modes */}
+            <div className="lg:col-span-6 xl:col-span-4 space-y-6 flex flex-col">
+              {/* Donut Chart with Click-to-Filter on Pathways */}
+              <PathwayDistributionChart
+                data={data?.pathway_distribution || []}
+                totalValue={data?.kpis?.value_recovered_inr || 1809550}
+                isLoading={isLoading}
+                selectedPathway={selectedPathwayFilter}
+                onSelectPathway={(pw) => {
+                  setSelectedPathwayFilter(
+                    selectedPathwayFilter === pw ? null : pw
+                  );
+                }}
+              />
+
+              {/* Circular Recovery Rate Progress Gauge */}
+              <RecoveryRateGauge
+                rate={data?.kpis?.recovery_rate_pct || 71.2}
+              />
+
+              {/* Common Defects with Click-to-Filter on Defect Categories */}
+              <CommonDefectsChart
+                data={data?.common_defects || []}
+                isLoading={isLoading}
+                selectedDefect={selectedDefectFilter}
+                onSelectDefect={(def) => {
+                  setSelectedDefectFilter(
+                    selectedDefectFilter === def ? null : def
+                  );
+                }}
+              />
+            </div>
+
+            {/* Right Insights Column: Eco Impact + Bench Tests + Forecast Variance + Quote */}
+            <div className="lg:col-span-6 xl:col-span-3 space-y-6 flex flex-col">
+              {/* Eco Impact Card */}
+              <EcoImpactCard
+                wasteDivertedKg={data?.kpis?.waste_diverted_kg || 26.8}
+              />
+
+              {/* Human Review Queue with Click-to-Resolve Bench Tests */}
+              <div id="review-queue-card">
+                <HumanReviewQueue
+                  queue={data?.human_review_queue || []}
+                  isLoading={isLoading}
+                  onResolveItem={(item) => setSelectedReviewItem(item)}
+                />
+              </div>
+
+              {/* Forecast vs Realized Recovery Value (Predicted vs Actual) */}
+              <PredictedVsActualChart
+                data={data?.predicted_vs_actual || []}
+                isLoading={isLoading}
+              />
+
+              {/* Sustainability Quote Card */}
+              <EcoQuoteCard />
+            </div>
           </div>
-
-          {/* Middle Analytics Column: Recovery Overview Donut + Progress Gauge + Top Failure Modes */}
-          <div className="lg:col-span-6 xl:col-span-4 space-y-6 flex flex-col">
-            {/* Donut Chart (Finora Spending Overview) */}
-            <PathwayDistributionChart
-              data={data?.pathway_distribution || []}
-              totalValue={data?.kpis?.value_recovered_inr || 1809550}
-              isLoading={isLoading}
-            />
-
-            {/* Circular Recovery Rate Progress Gauge (Finora Budget Progress) */}
-            <RecoveryRateGauge
-              rate={data?.kpis?.recovery_rate_pct || 71.2}
-            />
-
-            {/* Common Defect Categories (Finora Top Categories) */}
-            <CommonDefectsChart
-              data={data?.common_defects || []}
-              isLoading={isLoading}
-            />
-          </div>
-
-          {/* Right Insights Column: Eco Impact + Upcoming Bench Tests + Prediction Variance + Quote */}
-          <div className="lg:col-span-6 xl:col-span-3 space-y-6 flex flex-col">
-            {/* Eco Impact Card (Finora Grow Your Money) */}
-            <EcoImpactCard
-              wasteDivertedKg={data?.kpis?.waste_diverted_kg || 26.8}
-            />
-
-            {/* Human Review Queue (Finora Upcoming Bills) */}
-            <HumanReviewQueue
-              queue={data?.human_review_queue || []}
-              isLoading={isLoading}
-            />
-
-            {/* Forecast vs Realized Recovery Value (Predicted vs Actual) */}
-            <PredictedVsActualChart
-              data={data?.predicted_vs_actual || []}
-              isLoading={isLoading}
-            />
-
-            {/* Eco Quote Card (Finora Bottom Right Quote) */}
-            <EcoQuoteCard />
-          </div>
-        </div>
+        )}
       </main>
 
       {/* Global Clean Professional Footer */}
       <footer className="border-t border-slate-200/60 py-4 px-8 text-xs text-slate-400 bg-white/60 backdrop-blur-sm mt-8">
         <div className="flex flex-col sm:flex-row items-center justify-between max-w-[1800px] mx-auto gap-2">
-          <span>ReLife AI • Circular Electronics Reverse-Logistics OS</span>
+          <span>ReLife AI • Universal Circular Product Recovery OS</span>
           <span>Enterprise Fleet Recovery Engine</span>
         </div>
       </footer>
+
+      {/* Interactive Modal Dialogs */}
+      <IntakeModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => {
+          showToast('Product return registered and routed to circular pathway!');
+          loadData(dateRange);
+        }}
+      />
+
+      <ReturnDetailModal
+        item={selectedReturn}
+        onClose={() => setSelectedReturn(null)}
+      />
+
+      <ResolveReviewModal
+        item={selectedReviewItem}
+        onClose={() => setSelectedReviewItem(null)}
+        onSuccess={() => {
+          showToast('Bench inspection resolved and marked as Recovered!');
+          loadData(dateRange);
+        }}
+      />
     </div>
   );
 }

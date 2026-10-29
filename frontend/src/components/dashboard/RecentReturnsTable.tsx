@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { RecentReturnItem } from '../../lib/types';
 import { Card } from '../ui/Card';
 import { StatusChip, PathwayBadge } from '../ui/Badge';
@@ -19,19 +19,44 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Filter,
 } from 'lucide-react';
 
 interface RecentReturnsTableProps {
   returns: RecentReturnItem[];
   isLoading: boolean;
+  onSelectReturn?: (item: RecentReturnItem) => void;
+  pathwayFilter?: string | null;
+  onClearPathwayFilter?: () => void;
+  defectFilter?: string | null;
+  onClearDefectFilter?: () => void;
+  externalSearchTerm?: string;
+  onOpenIntake?: () => void;
 }
 
-export function RecentReturnsTable({ returns, isLoading }: RecentReturnsTableProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+export function RecentReturnsTable({
+  returns,
+  isLoading,
+  onSelectReturn,
+  pathwayFilter,
+  onClearPathwayFilter,
+  defectFilter,
+  onClearDefectFilter,
+  externalSearchTerm = '',
+  onOpenIntake,
+}: RecentReturnsTableProps) {
+  const [searchTerm, setSearchTerm] = useState(externalSearchTerm);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+
+  useEffect(() => {
+    if (externalSearchTerm !== undefined) {
+      setSearchTerm(externalSearchTerm);
+      setCurrentPage(1);
+    }
+  }, [externalSearchTerm]);
 
   // Extract all unique categories dynamically from seeded data
   const availableCategories = useMemo(() => {
@@ -45,15 +70,31 @@ export function RecentReturnsTable({ returns, isLoading }: RecentReturnsTablePro
   const filteredData = useMemo(() => {
     let result = [...returns];
 
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase();
+    // Global / local search
+    const activeQuery = (searchTerm || externalSearchTerm || '').trim().toLowerCase();
+    if (activeQuery) {
       result = result.filter(
         (item) =>
-          item.id.toLowerCase().includes(q) ||
-          item.brand_model.toLowerCase().includes(q) ||
-          item.defect_summary.toLowerCase().includes(q) ||
-          item.recommended_pathway.toLowerCase().includes(q) ||
-          item.category.toLowerCase().includes(q)
+          item.id.toLowerCase().includes(activeQuery) ||
+          item.brand_model.toLowerCase().includes(activeQuery) ||
+          item.defect_summary.toLowerCase().includes(activeQuery) ||
+          item.recommended_pathway.toLowerCase().includes(activeQuery) ||
+          item.category.toLowerCase().includes(activeQuery)
+      );
+    }
+
+    // Chart-based Pathway Filter
+    if (pathwayFilter) {
+      result = result.filter(
+        (item) =>
+          item.recommended_pathway.toLowerCase() === pathwayFilter.toLowerCase()
+      );
+    }
+
+    // Chart-based Defect Filter
+    if (defectFilter) {
+      result = result.filter((item) =>
+        item.defect_summary.toLowerCase().includes(defectFilter.toLowerCase())
       );
     }
 
@@ -66,7 +107,7 @@ export function RecentReturnsTable({ returns, isLoading }: RecentReturnsTablePro
     }
 
     return result;
-  }, [returns, searchTerm, statusFilter, categoryFilter]);
+  }, [returns, searchTerm, externalSearchTerm, pathwayFilter, defectFilter, statusFilter, categoryFilter]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
   const paginatedData = filteredData.slice(
@@ -124,11 +165,73 @@ export function RecentReturnsTable({ returns, isLoading }: RecentReturnsTablePro
     <Card
       title="Recent Returns Triage"
       action={
-        <span className="text-xs font-semibold text-[#073E2E] cursor-pointer hover:underline">
-          View All →
-        </span>
+        <button
+          onClick={onOpenIntake}
+          className="text-xs font-semibold text-[#073E2E] hover:underline"
+        >
+          + Ingest Return
+        </button>
       }
     >
+      {/* Active Filter Chips */}
+      {(pathwayFilter || defectFilter || searchTerm) && (
+        <div className="flex flex-wrap items-center gap-2 mb-3 pt-1">
+          <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
+            <Filter className="w-3 h-3" />
+            Active Filters:
+          </span>
+
+          {pathwayFilter && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium">
+              Pathway: {pathwayFilter}
+              <button
+                onClick={onClearPathwayFilter}
+                className="hover:text-emerald-950"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {defectFilter && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium">
+              Defect: {defectFilter}
+              <button
+                onClick={onClearDefectFilter}
+                className="hover:text-amber-950"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {searchTerm && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-800 text-xs font-medium">
+              Keyword: &quot;{searchTerm}&quot;
+              <button
+                onClick={() => setSearchTerm('')}
+                className="hover:text-slate-950"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          <button
+            onClick={() => {
+              onClearPathwayFilter && onClearPathwayFilter();
+              onClearDefectFilter && onClearDefectFilter();
+              setSearchTerm('');
+              setStatusFilter('all');
+              setCategoryFilter('all');
+            }}
+            className="text-[11px] font-semibold text-slate-400 hover:text-slate-700 underline"
+          >
+            Clear all
+          </button>
+        </div>
+      )}
+
       {/* Search & Filter Toolbar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
         <div className="relative w-full sm:w-80">
@@ -190,7 +293,7 @@ export function RecentReturnsTable({ returns, isLoading }: RecentReturnsTablePro
         <TableSkeleton />
       ) : filteredData.length === 0 ? (
         <div className="py-12 text-center text-slate-400 text-xs">
-          No return items found.
+          No return items matching active filters.
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -209,10 +312,15 @@ export function RecentReturnsTable({ returns, isLoading }: RecentReturnsTablePro
               {paginatedData.map((item) => {
                 const CategoryIcon = getCategoryIcon(item.category);
                 return (
-                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr
+                    key={item.id}
+                    onClick={() => onSelectReturn && onSelectReturn(item)}
+                    className="hover:bg-slate-50/90 transition-colors cursor-pointer group"
+                    title="Click to view full return diagnostic report"
+                  >
                     {/* Date & ID */}
                     <td className="py-3 px-3">
-                      <span className="font-mono font-bold text-slate-900 block text-xs">
+                      <span className="font-mono font-bold text-slate-900 block text-xs group-hover:text-[#073E2E] transition-colors">
                         {item.id}
                       </span>
                       <span className="text-[10px] text-slate-400">{item.received_date}</span>
@@ -229,7 +337,7 @@ export function RecentReturnsTable({ returns, isLoading }: RecentReturnsTablePro
                           {getBrandInitial(item.brand_model)}
                         </div>
                         <div>
-                          <span className="font-bold text-slate-800 block text-xs">
+                          <span className="font-bold text-slate-800 block text-xs group-hover:text-[#073E2E] transition-colors">
                             {item.brand_model}
                           </span>
                           <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">

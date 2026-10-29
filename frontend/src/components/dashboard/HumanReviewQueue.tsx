@@ -11,21 +11,22 @@ import {
   Cpu,
   Volume2,
   Barcode,
-  ArrowRight,
+  ChevronRight,
   ShieldAlert,
 } from 'lucide-react';
 
 interface HumanReviewQueueProps {
   queue: HumanReviewItem[];
   isLoading: boolean;
+  onResolveItem?: (item: HumanReviewItem) => void;
 }
 
-export function HumanReviewQueue({ queue, isLoading }: HumanReviewQueueProps) {
+export function HumanReviewQueue({ queue, isLoading, onResolveItem }: HumanReviewQueueProps) {
   const getIcon = (reason: string) => {
     if (reason.includes('Battery')) return BatteryWarning;
     if (reason.includes('Liquid')) return Droplets;
-    if (reason.includes('barcode') || reason.includes('serial')) return Barcode;
-    if (reason.includes('acoustic')) return Volume2;
+    if (reason.includes('barcode') || reason.includes('serial') || reason.includes('label')) return Barcode;
+    if (reason.includes('acoustic') || reason.includes('fan')) return Volume2;
     if (reason.includes('confidence')) return Eye;
     return Cpu;
   };
@@ -61,7 +62,7 @@ export function HumanReviewQueue({ queue, isLoading }: HumanReviewQueueProps) {
       title="Upcoming Inspections"
       action={
         <span className="text-xs font-semibold text-[#073E2E] cursor-pointer hover:underline">
-          View All →
+          {queue.length} Pending
         </span>
       }
     >
@@ -70,7 +71,7 @@ export function HumanReviewQueue({ queue, isLoading }: HumanReviewQueueProps) {
           No bench tests currently pending. All automated checks passed.
         </div>
       ) : (
-        <div className="space-y-3 py-1">
+        <div className="space-y-2.5 py-1">
           {queue.slice(0, 5).map((item, index) => {
             const Icon = getIcon(item.reason);
             const iconStyle = getIconColor(index);
@@ -78,16 +79,18 @@ export function HumanReviewQueue({ queue, isLoading }: HumanReviewQueueProps) {
             return (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group"
+                onClick={() => onResolveItem && onResolveItem(item)}
+                className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group cursor-pointer"
+                title="Click to execute bench test and resolve review"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div
                     className={`w-9 h-9 rounded-2xl ${iconStyle} flex items-center justify-center shrink-0 shadow-sm`}
                   >
                     <Icon className="w-4 h-4" />
                   </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-slate-800 font-sans group-hover:text-[#073E2E] transition-colors">
+                  <div className="min-w-0">
+                    <h5 className="text-xs font-bold text-slate-800 font-sans group-hover:text-[#073E2E] transition-colors truncate">
                       {item.product_name}
                     </h5>
                     <p className="text-[10px] text-slate-500 font-medium truncate max-w-[170px]">
@@ -96,12 +99,12 @@ export function HumanReviewQueue({ queue, isLoading }: HumanReviewQueueProps) {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end shrink-0">
+                <div className="flex flex-col items-end shrink-0 pl-2">
                   <span className="text-xs font-bold text-[#073E2E] font-mono">
                     {item.defect_confidence}%
                   </span>
-                  <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded font-medium mt-0.5">
-                    Needs Test
+                  <span className="text-[10px] text-amber-800 bg-amber-100/70 hover:bg-amber-200 px-2 py-0.5 rounded-full font-semibold mt-0.5 transition-colors">
+                    Test Now →
                   </span>
                 </div>
               </div>

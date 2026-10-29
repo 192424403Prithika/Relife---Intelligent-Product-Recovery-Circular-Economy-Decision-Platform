@@ -77,3 +77,30 @@ class DashboardResponse(BaseModel):
     recent_returns: List[RecentReturnItem]
     human_review_queue: List[HumanReviewItem]
 
+
+class ProductItem(BaseModel):
+    id: str
+    brand: str
+    model: str
+    category: str
+    msrp_inr: float
+    weight_kg: float
+
+
+class CreateReturnRequest(BaseModel):
+    product_id: str
+    return_reason: str = "Customer return - diagnostic inspection"
+    defect_category: str = "scratch"
+    defect_severity: str = "minor"
+    defect_description: str = "Cosmetic surface wear"
+    needs_human_review: bool = False
+    review_reason: Optional[str] = None
+    required_test: Optional[str] = None
+
+
+class ResolveReviewRequest(BaseModel):
+    action: str = "pass"
+    pathway: Optional[str] = None
+    notes: Optional[str] = None
+
+

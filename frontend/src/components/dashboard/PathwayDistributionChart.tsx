@@ -11,6 +11,8 @@ interface PathwayDistributionChartProps {
   data: PathwayDistributionItem[];
   totalValue?: number;
   isLoading: boolean;
+  selectedPathway?: string | null;
+  onSelectPathway?: (pathway: string) => void;
 }
 
 const FINORA_COLORS = [
@@ -25,6 +27,8 @@ export function PathwayDistributionChart({
   data,
   totalValue = 1809550,
   isLoading,
+  selectedPathway,
+  onSelectPathway,
 }: PathwayDistributionChartProps) {
   if (isLoading) {
     return (
@@ -65,6 +69,9 @@ export function PathwayDistributionChart({
               <span>Recovered:</span>
               <span className="font-bold text-slate-900">{formatINR(item.estimatedValue, true)}</span>
             </div>
+            <div className="pt-1 text-[10px] text-slate-400 italic">
+              Click to filter returns table
+            </div>
           </div>
         </div>
       );
@@ -99,12 +106,15 @@ export function PathwayDistributionChart({
                 dataKey="count"
                 stroke="#FFFFFF"
                 strokeWidth={3}
+                onClick={(entry) => onSelectPathway && onSelectPathway(entry.name)}
               >
                 {enrichedData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.color}
-                    className="hover:opacity-85 transition-opacity cursor-pointer outline-none"
+                    className="hover:opacity-80 transition-opacity cursor-pointer outline-none"
+                    stroke={selectedPathway === entry.name ? '#073E2E' : '#FFFFFF'}
+                    strokeWidth={selectedPathway === entry.name ? 3 : 2}
                   />
                 ))}
               </Pie>
@@ -112,7 +122,7 @@ export function PathwayDistributionChart({
             </PieChart>
           </ResponsiveContainer>
 
-          {/* Center Callout matching Finora's "$1,240.60 Total Spent" */}
+          {/* Center Callout */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-base sm:text-lg font-extrabold font-sans text-slate-900 tracking-tight">
               {formatINR(totalValue, true)}
@@ -122,27 +132,37 @@ export function PathwayDistributionChart({
         </div>
 
         {/* Right: Detailed Finora-Style Legend List */}
-        <div className="sm:col-span-6 flex flex-col justify-center space-y-2 text-xs">
-          {enrichedData.map((item) => (
-            <div
-              key={item.name}
-              className="flex items-center justify-between py-1 border-b border-slate-50 last:border-none"
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-slate-600 font-medium">{item.name}</span>
+        <div className="sm:col-span-6 flex flex-col justify-center space-y-1.5 text-xs">
+          {enrichedData.map((item) => {
+            const isSelected = selectedPathway === item.name;
+            return (
+              <div
+                key={item.name}
+                onClick={() => onSelectPathway && onSelectPathway(item.name)}
+                className={`flex items-center justify-between py-1 px-2 rounded-xl cursor-pointer transition-colors ${
+                  isSelected
+                    ? 'bg-emerald-50 border border-emerald-200'
+                    : 'hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className={`font-medium ${isSelected ? 'text-[#073E2E] font-bold' : 'text-slate-600'}`}>
+                    {item.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 font-mono">
+                  <span className="text-slate-400 text-[11px]">{item.percentage}%</span>
+                  <span className="text-slate-800 font-bold text-[11px] min-w-[50px] text-right">
+                    {formatINR(item.estimatedValue, true)}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 font-mono">
-                <span className="text-slate-400 text-[11px]">{item.percentage}%</span>
-                <span className="text-slate-800 font-bold text-[11px] min-w-[50px] text-right">
-                  {formatINR(item.estimatedValue, true)}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </Card>

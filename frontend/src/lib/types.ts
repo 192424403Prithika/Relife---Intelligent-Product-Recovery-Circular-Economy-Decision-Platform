@@ -66,6 +66,32 @@ export interface HumanReviewItem {
   received_date: string;
 }
 
+export interface ProductItem {
+  id: string;
+  brand: string;
+  model: string;
+  category: string;
+  msrp_inr: number;
+  weight_kg: number;
+}
+
+export interface CreateReturnPayload {
+  product_id: string;
+  return_reason: string;
+  defect_category: string;
+  defect_severity: string;
+  defect_description: string;
+  needs_human_review: boolean;
+  review_reason?: string;
+  required_test?: string;
+}
+
+export interface ResolveReviewPayload {
+  action: string;
+  pathway?: string;
+  notes?: string;
+}
+
 export interface DashboardResponse {
   date_range: DateRange;
   is_sample_data: boolean;
@@ -77,4 +103,3 @@ export interface DashboardResponse {
   recent_returns: RecentReturnItem[];
   human_review_queue: HumanReviewItem[];
 }
-
