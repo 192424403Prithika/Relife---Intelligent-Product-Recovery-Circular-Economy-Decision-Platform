@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #F4F7F5;
+  --foreground: #1E293B;
+  --primary: #073E2E;
+}
+
+body {
+  color: var(--foreground);
+  background-color: var(--background);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Crisp Clean Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F3;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #073E2E;
+}
+
+/* Accessible focus outline */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #073E2E;
+  outline-offset: 2px;
+}
+
+/* Recharts styling for clean Finora look */
+.recharts-default-tooltip {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03) !important;
+  color: #1E293B !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+.recharts-tooltip-label {
+  color: #073E2E !important;
+  font-weight: 700 !important;
+  margin-bottom: 4px !important;
+  font-size: 13px !important;
+}
+
+.recharts-legend-item-text {
+  color: #64748B !important;
+  font-size: 12px !important;
+}

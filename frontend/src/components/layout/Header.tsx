@@ -1,0 +1,95 @@
+'use client';
+
+import React from 'react';
+import { DateRange } from '../../lib/types';
+import {
+  Search,
+  Bell,
+  ChevronDown,
+  Calendar,
+} from 'lucide-react';
+
+interface HeaderProps {
+  dateRange: DateRange;
+  onDateRangeChange: (range: DateRange) => void;
+  isLoading?: boolean;
+}
+
+export function Header({ dateRange, onDateRangeChange, isLoading = false }: HeaderProps) {
+  const ranges: { id: DateRange; label: string }[] = [
+    { id: '7d', label: '7 Days' },
+    { id: '30d', label: '30 Days' },
+    { id: 'all', label: 'All Time' },
+  ];
+
+  return (
+    <header className="sticky top-0 z-30 bg-[#F4F7F5]/90 backdrop-blur-md px-6 lg:px-8 py-3.5 border-b border-slate-200/70">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-[1800px] mx-auto">
+        {/* Left: Search Bar (Finora style) */}
+        <div className="relative w-full sm:w-80 lg:w-96">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search all products, serials, defects, or pathways..."
+            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#073E2E] shadow-sm transition-all"
+          />
+        </div>
+
+        {/* Right: Date Range Selector, Notification Bell & User Profile */}
+        <div className="flex items-center gap-3.5 justify-end w-full sm:w-auto">
+          {/* Date Range Selector */}
+          <div className="flex items-center bg-white p-1 rounded-full border border-slate-200 shadow-sm">
+            <span className="flex items-center pl-2.5 pr-1 text-slate-400">
+              <Calendar className="w-3.5 h-3.5 text-slate-500" />
+            </span>
+            {ranges.map((range) => {
+              const active = dateRange === range.id;
+              return (
+                <button
+                  key={range.id}
+                  onClick={() => onDateRangeChange(range.id)}
+                  disabled={isLoading}
+                  className={`px-3.5 py-1 rounded-full text-xs font-semibold tracking-tight transition-all ${
+                    active
+                      ? 'bg-[#073E2E] text-white shadow-sm'
+                      : 'text-slate-500 hover:text-slate-800'
+                  } ${isLoading ? 'opacity-50 cursor-wait' : ''}`}
+                >
+                  {range.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Notification Bell with Badge */}
+          <button
+            type="button"
+            className="relative p-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm transition-all hover:bg-slate-50"
+            aria-label="Notifications"
+          >
+            <Bell className="w-4 h-4" />
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center shadow-sm">
+              3
+            </span>
+          </button>
+
+          {/* User Profile matching Finora */}
+          <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-bold text-xs shadow-sm ring-2 ring-white">
+              AK
+            </div>
+            <div className="hidden sm:flex flex-col text-left">
+              <span className="text-xs font-bold text-slate-800 leading-none font-sans">
+                Ayesha Khan
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium leading-tight mt-0.5">
+                Recovery Lead
+              </span>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
